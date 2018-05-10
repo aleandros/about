@@ -1,0 +1,6 @@
+about
+*/nimcache/
+tests/*
+!tests/*.nim
+!tests/*.nims
+
