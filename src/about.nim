@@ -19,7 +19,10 @@ import sets
 import os
 import osproc
 
-let args = docopt(doc, version = "about 0.1.0")
+let 
+  args = docopt(doc, version = "about 0.1.0")
+  pattern = $args["<pattern>"]
+  history = args["--history"]
 
 proc isExecutable(path: string): bool =
   let permissions = getFilePermissions(path)
@@ -28,28 +31,33 @@ proc isExecutable(path: string): bool =
 proc isProgram(path: string): bool =
   existsFile(path) and isExecutable(path)
 
+proc baseName(path: string): string =
+  let parts = path.split({'/'})
+  parts[len(parts) - 1]
+
 proc isMatch(path: string, pattern: string, nameOnly: bool): bool =
-  let against = if nameOnly:
-                  let parts = path.split({'/'})
-                  parts[len(parts) - 1]
-                else:
-                  path
-  pattern in against
+  let target = if nameOnly: basename(path) else: path
+  pattern in target
 
 iterator pathElements(): string =
   for element in toSet(getEnv("PATH").split({':'})):
     for _, path in walkDir(element):
       yield path
 
-if args["--history"]:
-  let shell = getEnv("SHELL")
-  let output = execProcess("$1 -c history" % [shell])
-  for line in output.splitLines():
-    if $args["<pattern>"] in line:
-      echo line
-else:
+iterator programs(): string =
   for element in pathElements():
     if isProgram(element):
-      if isMatch(element, $args["<pattern>"], args["--name-only"]):
-        echo element
+      yield element
 
+
+if history:
+  let
+    shell = getEnv("SHELL")
+    output = execProcess("$1 -c history" % [shell])
+  for line in output.splitLines():
+    if pattern in line:
+      echo line
+else:
+  for program in programs():
+    if isMatch(program, pattern, args["--name-only"]):
+        echo program
