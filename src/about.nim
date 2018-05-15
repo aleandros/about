@@ -13,13 +13,10 @@ Options:
   --history     Search for matches in history
 """
 
-import strutils
-import docopt
-import sets
-import os
-import osproc
+import docopt, sets, os, osproc, strutils
+import aboutpkg/fileutils
 
-let 
+let
   args = docopt(doc, version = "about 0.1.0")
   pattern = $args["<pattern>"]
   history = args["--history"]
@@ -31,12 +28,8 @@ proc isExecutable(path: string): bool =
 proc isProgram(path: string): bool =
   existsFile(path) and isExecutable(path)
 
-proc baseName(path: string): string =
-  let parts = path.split({'/'})
-  parts[len(parts) - 1]
-
 proc isMatch(path: string, pattern: string, nameOnly: bool): bool =
-  let target = if nameOnly: basename(path) else: path
+  let target = if nameOnly: baseName(path) else: path
   pattern in target
 
 iterator pathElements(): string =
