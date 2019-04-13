@@ -17,7 +17,7 @@ import docopt, sets, os, osproc, strutils
 import aboutpkg/fileutils
 
 let
-  args = docopt(doc, version = "about 0.1.0")
+  args = docopt(doc, version = "about 0.1.1")
   pattern = $args["<pattern>"]
   history = args["--history"]
 
@@ -33,7 +33,7 @@ proc isMatch(path: string, pattern: string, nameOnly: bool): bool =
   pattern in target
 
 iterator pathElements(): string =
-  for element in toSet(getEnv("PATH").split({':'})):
+  for element in toSet(getEnv("PATH").split({PathSep})):
     for _, path in walkDir(element):
       yield path
 
