@@ -13,7 +13,7 @@ Options:
   --history     Search for matches in history
 """
 
-import docopt, sets, os, osproc, strutils
+import docopt, sets, os, osproc, strutils, sequtils
 import aboutpkg/fileutils
 
 let
@@ -25,8 +25,15 @@ proc isExecutable(path: string): bool =
   let permissions = getFilePermissions(path)
   fpUserExec in permissions
 
+proc hasValidExtension(path: string): bool =
+  result = true
+  if existsEnv("PATHEXT"):
+    let extensions = getEnv("PATHEXT").split({PathSep})
+    let (_, _, ext) = path.splitFile()
+    result = extensions.anyIt(ext.cmpIgnoreCase(it) == 0)
+
 proc isProgram(path: string): bool =
-  existsFile(path) and isExecutable(path)
+  existsFile(path) and isExecutable(path) and hasValidExtension(path)
 
 proc isMatch(path: string, pattern: string, nameOnly: bool): bool =
   let target = if nameOnly: baseName(path) else: path
